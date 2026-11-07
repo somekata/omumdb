@@ -121,6 +121,47 @@ def pubmed(q):
     return "https://pubmed.ncbi.nlm.nih.gov/?term=" + quote_plus(q)
 
 
+# PubMed検索の所属条件（著者名のフルネーム AND 所属）
+AFFIL = '("Osaka City University"[Affiliation] OR "Osaka Metropolitan University"[Affiliation])'
+
+# 研究者ID（kaken=科研費の研究者番号、jglobal=J-GLOBAL ID、rmid=researchmap会員ID）
+RESEARCHERS = [
+    dict(ja="金子幸弘", en="Yukihiro Kaneko", pubmed='"Kaneko Yukihiro"[Author]', kaken="90469958",
+         orcid="0000-0002-3439-6141", jglobal="201301007522639210", rmid="B000228411"),
+    dict(ja="仁木満美子", en="Mamiko Niki", pubmed='"Niki Mamiko"[Author]', kaken="20438229", orcid="0000-0003-3326-8014"),
+    dict(ja="老沼研一", en="Ken-ichi Oinuma", pubmed='"Oinuma Ken-Ichi"[Author]', kaken="20635619", orcid="0000-0001-8313-5143"),
+    dict(ja="坪内泰志", en="Taishi Tsubouchi", pubmed='"Tsubouchi Taishi"[Author]', kaken="30442990", orcid="0000-0002-1635-2604"),
+    dict(ja="奥田諒", en="Ryo Okuda", orcid="0009-0009-9909-8514"),
+    dict(ja="Naijimiding Nijiati", en="Naijimiding Nijiati", orcid="0009-0002-2414-3447"),
+]
+
+
+def researcher_table(lang):
+    ja = lang == "ja"
+    head = (("氏名", "業績検索（PubMed）", "ORCID", "科研費（KAKEN）", "その他の研究者ID") if ja else
+            ("Name", "Publications (PubMed)", "ORCID", "KAKEN", "Other IDs"))
+    dash = "—"
+    rows = []
+    for r in RESEARCHERS:
+        if ja:
+            name = r["ja"] + (f'<span class="en">{r["en"]}</span>' if r["ja"] != r["en"] else "")
+        else:
+            name = r["en"]
+        pm = (f'<a href="{pubmed(r["pubmed"] + " AND " + AFFIL)}">{"PubMedで検索" if ja else "Search PubMed"}</a>'
+              if r.get("pubmed") else dash)
+        orcid = f'<a href="https://orcid.org/{r["orcid"]}">{r["orcid"]}</a>' if r.get("orcid") else dash
+        kaken = (f'<a href="https://kaken.nii.ac.jp/d/r/{r["kaken"]}.{lang}.html">{r["kaken"]}</a>'
+                 if r.get("kaken") else dash)
+        other = []
+        if r.get("jglobal"):
+            other.append(f'J-GLOBAL: <a href="https://jglobal.jst.go.jp/detail?JGLOBAL_ID={r["jglobal"]}">{r["jglobal"]}</a>')
+        if r.get("rmid"):
+            other.append(f'{"researchmap会員ID" if ja else "researchmap member ID"}: {r["rmid"]}')
+        rows.append(f'<tr><th scope="row">{name}</th><td>{pm}</td><td>{orcid}</td><td>{kaken}</td><td>{"<br>".join(other) or dash}</td></tr>')
+    return ('<div class="table-wrap"><table class="idtable"><thead><tr>' + "".join(f'<th scope="col">{h}</th>' for h in head)
+            + "</tr></thead><tbody>" + "".join(rows) + "</tbody></table></div>")
+
+
 # ======================================================================
 # 共通部品
 # ======================================================================
@@ -379,21 +420,20 @@ def pages_ja():
   <p class="note">バイキンズ®は登録商標です。</p>
 </div></section>""")
 
-    staff = [("Kaneko Y", "金子幸弘"), ("Niki M", "仁木満美子"), ("Oinuma K", "老沼研一"), ("Tsubouchi T", "坪内泰志")]
-    pm = "".join(f'<li><a href="{pubmed(f"{q}[Author] AND Osaka[Affiliation]")}">{n}（{q}）をPubMedで検索</a></li>' for q, n in staff)
-    P["publications"] = ("業績", "細菌学教室の業績。受賞、論文・著書・学会発表の検索リンク。", page_head("ja", "業績") + f"""
+    P["publications"] = ("業績", "細菌学教室の業績。受賞、論文・著書・学会発表の検索リンク、研究者ID。", page_head("ja", "業績") + f"""
 <section class="section"><div class="wrap prose">
   <h2 class="sec">受賞</h2>
   <ul><li>文部科学大臣賞（薬剤耐性（AMR）の啓発に関する取り組み）</li></ul>
   <h2 class="sec">論文・著書・学会発表</h2>
-  <p>主要な業績は、このページに順次掲載します。当面は、次のデータベースをご利用ください。</p>
+  <p>主要な業績は、このページに順次掲載します。当面は、次の研究者情報と検索リンクをご利用ください。</p>
+  <p class="warn">※ このページの業績の掲載は、緊急的・簡易的に設置したものです。PubMedの検索結果には、同姓同名の研究者の論文が含まれたり、著者名や所属の表記の違いにより漏れたりする場合があります。正確な業績は、各研究者のORCID、KAKEN、researchmapなどでご確認ください。</p>
+  {researcher_table("ja")}
+  <p class="note">PubMedの検索条件：著者名（フルネーム）AND 所属（Osaka City University または Osaka Metropolitan University）。</p>
+  <h2 class="sec">データベース</h2>
   <ul>
     <li><a href="https://researchmap.jp/">researchmap</a></li>
     <li><a href="https://pubmed.ncbi.nlm.nih.gov/">PubMed</a></li>
   </ul>
-  <p>教員ごとのPubMed検索（所属に「Osaka」を含む論文）：</p>
-  <ul>{pm}</ul>
-  <p class="note">検索結果には同姓同名の研究者の論文が含まれたり、所属表記の違いにより漏れたりする場合があります。</p>
 </div></section>""")
 
     P["access"] = ("アクセス・連絡先", "大阪公立大学大学院医学研究科 細菌学の所在地とお問い合わせ。", page_head("ja", "アクセス・連絡先") + f"""
@@ -552,21 +592,20 @@ def pages_en():
   <p class="note">Baikinz® is a registered trademark.</p>
 </div></section>""")
 
-    staff = [("Kaneko Y", "Yukihiro Kaneko"), ("Niki M", "Mamiko Niki"), ("Oinuma K", "Ken-ichi Oinuma"), ("Tsubouchi T", "Taishi Tsubouchi")]
-    pm = "".join(f'<li><a href="{pubmed(f"{q}[Author] AND Osaka[Affiliation]")}">{n} ({q}): search PubMed</a></li>' for q, n in staff)
-    P["publications"] = ("Publications", "Publications and awards of the Department of Bacteriology, with search links.", page_head("en", "Publications") + f"""
+    P["publications"] = ("Publications", "Publications and awards of the Department of Bacteriology, with search links and researcher IDs.", page_head("en", "Publications") + f"""
 <section class="section"><div class="wrap prose">
   <h2 class="sec">Awards</h2>
   <ul><li>Minister of Education, Culture, Sports, Science and Technology Award (for work on raising awareness of antimicrobial resistance, AMR)</li></ul>
   <h2 class="sec">Papers, books, and presentations</h2>
-  <p>We will add major publications to this page over time. In the meantime, please use the following databases.</p>
+  <p>We will add major publications to this page over time. In the meantime, please use the researcher information and search links below.</p>
+  <p class="warn">Note: This publication section was set up as an urgent, simplified measure. PubMed results may include papers by researchers with the same name, or miss papers because of differences in how author names and affiliations are written. For accurate publication lists, please check each researcher’s ORCID, KAKEN, or researchmap profile.</p>
+  {researcher_table("en")}
+  <p class="note">PubMed search condition: author full name AND affiliation (Osaka City University or Osaka Metropolitan University).</p>
+  <h2 class="sec">Databases</h2>
   <ul>
     <li><a href="https://researchmap.jp/">researchmap</a> (in Japanese)</li>
     <li><a href="https://pubmed.ncbi.nlm.nih.gov/">PubMed</a></li>
   </ul>
-  <p>PubMed searches by faculty member (papers with “Osaka” in the affiliation):</p>
-  <ul>{pm}</ul>
-  <p class="note">Results may include researchers with the same name, or miss papers because of differences in how affiliations are written.</p>
 </div></section>""")
 
     P["access"] = ("Access and contact", "Location and contact information of the Department of Bacteriology.", page_head("en", "Access and contact") + f"""
@@ -668,6 +707,15 @@ html[lang="en"] .brand .dept{font-size:1.3rem;letter-spacing:.03em}
 .prose p{margin:0 0 1em}
 .prose li{margin:.3em 0}
 .note{font-size:.88rem;color:var(--ink-soft)}
+.warn{background:#fff3e3;border-left:6px solid var(--gold);border-radius:6px;padding:12px 16px;font-size:.95rem}
+.table-wrap{overflow-x:auto;margin:16px 0 8px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card)}
+.idtable{width:100%;border-collapse:collapse;font-size:.93rem;line-height:1.6;min-width:760px}
+.idtable th,.idtable td{padding:10px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+.idtable thead th{background:var(--indigo);color:#fff;font-weight:700;white-space:nowrap}
+.idtable tbody th{font-weight:700;white-space:nowrap}
+.idtable tbody tr:last-child th,.idtable tbody tr:last-child td{border-bottom:0}
+.idtable .en{display:block;font-weight:400;font-size:.82rem;color:var(--ink-soft)}
+.idtable td a{white-space:nowrap}
 .more{text-align:right;margin:10px 0 0}
 
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
