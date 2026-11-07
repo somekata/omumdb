@@ -1,36 +1,13 @@
-差分（前回の omumdb-site.zip からの変更）
+差分（ロゴ差分の適用後からの変更）
 
-ロゴを新しい画像に差し替え。ヘッダーとfaviconが変わるため、全HTMLが更新対象。
+業績ページ：PubMed検索式の変更、注意書き、研究者ID表の追加
 
 【追加】
-assets/favicon.png
-assets/logo.png
 
 【変更】
 _tools/build.py
-about.html
-access.html
 assets/style.css
-calendar.html
-education.html
-en/about.html
-en/access.html
-en/calendar.html
-en/education.html
-en/index.html
-en/info.html
-en/links.html
-en/members.html
-en/outreach.html
 en/publications.html
-en/research.html
-index.html
-info.html
-links.html
-members.html
-outreach.html
 publications.html
-research.html
 
-【削除（リポジトリから手動で削除）】
-assets/favicon.svg
+【削除】
