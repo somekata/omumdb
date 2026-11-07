@@ -171,12 +171,6 @@ def extra_member(lang, p):
             "<li>Related organizations: OIRCID, RCIDS, Toneyama Institute for Tuberculosis Research</li></ul>")
 
 
-LOGO = ('<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><circle cx="24" cy="24" r="23" fill="#b22824"/>'
-        '<rect x="15" y="9" width="18" height="31" rx="9" fill="#fff"/><circle cx="20" cy="22" r="2.1" fill="#1e2d50"/>'
-        '<circle cx="28" cy="22" r="2.1" fill="#1e2d50"/><path d="M20 28q4 3 8 0" stroke="#1e2d50" stroke-width="1.8" '
-        'fill="none" stroke-linecap="round"/></svg>')
-
-
 def render(lang, slug, title, desc, body):
     a = lambda p: asset(lang, p)
     site = SITE[lang]
@@ -208,14 +202,14 @@ def render(lang, slug, title, desc, body):
 <meta property="og:description" content="{desc}">
 <meta property="og:image" content="{BASE}{CALENDARS[-1]['file']}">
 <meta name="theme-color" content="#1e2d50">
-<link rel="icon" href="{a('assets/favicon.svg')}" type="image/svg+xml">
+<link rel="icon" href="{a('assets/favicon.png')}" type="image/png">
 <link rel="stylesheet" href="{a('assets/style.css')}">
 </head>
 <body class="page-{slug}">
 <a class="skip" href="#main">{labels[0]}</a>
 <header class="site-header">
   <div class="wrap head-top">
-    <a class="brand" href="index.html" aria-label="{labels[2]}：{org_label}">{LOGO}
+    <a class="brand" href="index.html" aria-label="{labels[2]}：{org_label}"><img class="logo" src="{a('assets/logo.png')}" width="48" height="48" alt="">
       <span><span class="org">{site['org']}</span><span class="dept">{site['dept']}</span></span></a>
     <div class="lang" aria-label="Language"><a href="{sw_ja}" lang="ja"{' aria-current="true"' if lang == 'ja' else ''}>日本語</a><a href="{sw_en}" lang="en"{' aria-current="true"' if lang == 'en' else ''}>English</a></div>
   </div>
@@ -628,7 +622,7 @@ a:hover{color:var(--red)}
 .head-top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:14px;padding-bottom:14px}
 .brand{display:flex;align-items:center;gap:14px;color:#fff;text-decoration:none}
 .brand:hover{color:#fff}
-.brand svg{width:48px;height:48px;flex:none}
+.brand .logo{width:48px;height:48px;flex:none}
 .brand .org{display:block;font-size:.78rem;letter-spacing:.06em;opacity:.88;line-height:1.4}
 .brand .dept{display:block;font-family:var(--serif);font-weight:900;font-size:1.75rem;line-height:1.2;letter-spacing:.12em}
 html[lang="en"] .brand .dept{font-size:1.3rem;letter-spacing:.03em}
@@ -740,11 +734,6 @@ html[lang="en"] .brand .dept{font-size:1.3rem;letter-spacing:.03em}
 @media print{.site-header .nav,.lang,.skip{display:none}body{background:#fff}}
 """
 
-FAVICON = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><circle cx="24" cy="24" r="23" fill="#b22824"/>'
-           '<rect x="15" y="9" width="18" height="31" rx="9" fill="#fff"/><circle cx="20" cy="22" r="2.1" fill="#1e2d50"/>'
-           '<circle cx="28" cy="22" r="2.1" fill="#1e2d50"/><path d="M20 28q4 3 8 0" stroke="#1e2d50" stroke-width="1.8" '
-           'fill="none" stroke-linecap="round"/></svg>\n')
-
 NOT_FOUND = """<!doctype html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ページが見つかりません | 大阪公立大学大学院医学研究科 細菌学</title>
@@ -762,7 +751,6 @@ def write(path, text):
 
 def main():
     write(ROOT / "assets" / "style.css", CSS.lstrip("\n"))
-    write(ROOT / "assets" / "favicon.svg", FAVICON)
     write(ROOT / "404.html", NOT_FOUND)
     write(ROOT / "robots.txt", f"User-agent: *\nAllow: /\nSitemap: {BASE}sitemap.xml\n")
     urls = []
