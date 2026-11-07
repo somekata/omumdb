@@ -20,7 +20,7 @@ a:hover{color:var(--red)}
 .head-top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:14px;padding-bottom:14px}
 .brand{display:flex;align-items:center;gap:14px;color:#fff;text-decoration:none}
 .brand:hover{color:#fff}
-.brand svg{width:48px;height:48px;flex:none}
+.brand .logo{width:48px;height:48px;flex:none}
 .brand .org{display:block;font-size:.78rem;letter-spacing:.06em;opacity:.88;line-height:1.4}
 .brand .dept{display:block;font-family:var(--serif);font-weight:900;font-size:1.75rem;line-height:1.2;letter-spacing:.12em}
 html[lang="en"] .brand .dept{font-size:1.3rem;letter-spacing:.03em}
