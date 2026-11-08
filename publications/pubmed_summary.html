@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>業績集計（PubMed） | 大阪公立大学大学院医学研究科 細菌学</title>
+<style>
+:root{--bg:#fff;--fg:#000;--muted:#4a525a;--line:#cfd4da;--card:#f4f6f8;--accent:#0b5cad;--accent-fg:#fff;--warn:#fff4d6;--warn-line:#e0b84a}
+@media (prefers-color-scheme:dark){:root{--bg:#14171a;--fg:#eef1f3;--muted:#a9b2ba;--line:#3a4148;--card:#1d2226;--accent:#6cb2ff;--accent-fg:#001a33;--warn:#3a3217;--warn-line:#8a7430}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 "BIZ UDPGothic","Hiragino Kaku Gothic ProN","Yu Gothic UI","Meiryo",sans-serif}
+.wrap{max-width:1200px;margin:0 auto;padding:16px 16px 40px}
+h1{font-size:1.5rem;margin:.2em 0 .1em}
+h2{font-size:1.15rem;margin:1.2em 0 .5em}
+h3{font-size:1.05rem;margin:1.1em 0 .3em}
+.sub{color:var(--muted);margin:.2em 0 1em;font-size:.95rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin:12px 0}
+.drop{border:2px dashed var(--line);border-radius:10px;padding:18px;text-align:center;background:var(--card)}
+.drop.over{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--card))}
+.btn{font:inherit;font-size:.92rem;padding:6px 14px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-fg);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,.tab:focus-visible,a:focus-visible,th.sortable:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px 14px}
+.ctl label,.ctl .lbl{display:block;font-size:.85rem;color:var(--muted)}
+.ctl input[type=text],.ctl select,textarea{width:100%;font:inherit;font-size:.95rem;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg)}
+.chk{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.95rem}
+.chk label{display:inline-flex;align-items:center;gap:5px;color:var(--fg);font-size:.95rem}
+details>summary{cursor:pointer;font-weight:700;padding:2px 0}
+.tabs{display:flex;gap:4px;border-bottom:2px solid var(--line);margin-top:18px;flex-wrap:wrap}
+.tab{font:inherit;padding:8px 16px;border:none;background:none;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}
+.tab[aria-selected=true]{color:var(--fg);border-bottom-color:var(--accent);font-weight:700}
+.scroll{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:8px}
+table.tbl{border-collapse:collapse;width:100%;font-size:.93rem}
+.tbl th,.tbl td{padding:6px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.tbl th{position:sticky;top:0;background:var(--card);white-space:nowrap;z-index:1}
+.tbl td.num,.tbl th.num{text-align:right;font-variant-numeric:tabular-nums}
+.tbl tr.total td{font-weight:700;background:var(--card)}
+th.sortable{cursor:pointer;user-select:none}
+.dot{display:inline-block;width:.8em;height:.8em;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.notice{background:var(--warn);border:1px solid var(--warn-line);border-radius:8px;padding:8px 12px;margin:8px 0;font-size:.92rem}
+.stat{font-size:.93rem;color:var(--muted);margin:6px 0}
+.grp h3{margin-top:1.4em;border-bottom:1px solid var(--line);padding-bottom:2px}
+.ref{padding-left:2.2em;text-indent:-2.2em;margin:.3em 0}
+u{text-decoration-thickness:1.5px;text-underline-offset:3px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.small{font-size:.85rem;color:var(--muted)}
+svg.chart{width:100%;height:auto;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px}
+svg.chart text{fill:currentColor;font-size:13px;font-family:inherit}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111;color:#fff;padding:8px 18px;border-radius:20px;font-size:.92rem;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.show{opacity:.95}
+footer{margin-top:36px;padding-top:12px;border-top:1px solid var(--line);font-size:.85rem;color:var(--muted)}
+td select{font:inherit;font-size:.85rem;max-width:11em}
+.au-cell{font-size:.85rem;max-width:26em}
+@media print{.noprint{display:none!important}.scroll{max-height:none;overflow:visible;border:none}}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>PubMed業績集計ツール</h1>
+<p class="sub">PubMedの検索結果を保存したテキストを読み込むと、年・年度ごとの集計、グラフ、著者別の業績リストを作成します。処理はすべてこのブラウザ内で行われ、データは外部に送信されません。</p>
+
+<section class="card noprint" aria-label="ファイルの読み込み">
+  <div class="drop" id="drop">
+    <p style="margin:0 0 8px"><strong>ここにファイルをドラッグ＆ドロップ</strong>（複数可 / .txt .nbib など）</p>
+    <input type="file" id="file" multiple accept=".txt,.nbib,.medline,.text,text/plain" hidden>
+    <button class="btn" id="pick" type="button">ファイルを選択</button>
+    <button class="btn ghost" id="clear" type="button">読み込みデータをクリア</button>
+    <p class="small" style="margin:10px 0 0">推奨形式：PubMedの「Save」→ Selection: All results → Format: <strong>PubMed</strong>（MEDLINE形式）。論文種別（Publication Type）を使って自動分類できます。Summary (text) / Abstract (text) 形式も読めますが、種別は題名からの推定になります。</p>
+  </div>
+  <details style="margin-top:10px"><summary>テキストを貼り付けて読み込む</summary>
+    <textarea id="paste" rows="5" placeholder="PubMedのテキストをここに貼り付け" aria-label="貼り付け用テキスト"></textarea>
+    <button class="btn" id="pasteGo" type="button" style="margin-top:6px">読み込む</button>
+  </details>
+  <div class="stat" id="loadStat" aria-live="polite">まだ読み込まれていません。</div>
+</section>
+
+<section class="card noprint" aria-label="表示設定">
+  <details open><summary>フィルター・集計設定</summary>
+    <div class="grid" style="margin-top:10px">
+      <div class="ctl"><label for="unit">集計単位</label><select id="unit" class="ci"><option value="y">年（暦年）</option><option value="fy">年度</option></select></div>
+      <div class="ctl"><label for="fyStart">年度の開始月</label><select id="fyStart" class="ci"></select></div>
+      <div class="ctl"><label for="basis">日付の基準</label><select id="basis" class="ci"><option value="dp">出版日 (DP)</option><option value="dep">電子出版日 (Epub) 優先</option><option value="earliest">DPとEpubの早い方</option></select></div>
+      <div class="ctl"><label for="author">指定著者（下線・絞り込み）</label><input type="text" id="author" class="ci" value="Kaneko Y" placeholder="例: Kaneko Y; Kaneko YK" autocomplete="off"></div>
+      <div class="ctl"><label for="apos">著者による絞り込み</label><select id="apos" class="ci"><option value="all">全論文</option><option value="any">指定著者を含む</option><option value="first">筆頭著者のみ</option><option value="last">最終著者のみ</option><option value="firstlast">筆頭または最終</option></select></div>
+      <div class="ctl"><label for="q">キーワード（題名・雑誌・著者・PMID）</label><input type="text" id="q" class="ci" autocomplete="off"></div>
+      <div class="ctl"><label for="from">期間（から）</label><select id="from" class="ci"></select></div>
+      <div class="ctl"><label for="to">期間（まで）</label><select id="to" class="ci"></select></div>
+    </div>
+    <div class="ctl" style="margin-top:10px"><span class="lbl">種別</span><div class="chk" id="catChecks"></div></div>
+    <div class="chk" style="margin-top:8px">
+      <label><input type="checkbox" id="prefix" class="ci"> 指定著者のイニシャル前方一致（Kaneko Y → Kaneko YK も含める）</label>
+      <label><input type="checkbox" id="titleHeur" class="ci" checked> 種別が不明確なときは題名から補助判定</label>
+    </div>
+  </details>
+  <details style="margin-top:8px"><summary>リスト書式</summary>
+    <div class="grid" style="margin-top:10px">
+      <div class="ctl"><label for="gorder">年（年度）の並び</label><select id="gorder" class="ci"><option value="desc">新しい順</option><option value="asc">古い順</option></select></div>
+      <div class="ctl"><label for="iorder">年内の論文の並び</label><select id="iorder" class="ci"><option value="desc">新しい順</option><option value="asc">古い順</option></select></div>
+      <div class="ctl"><label for="numbering">通し番号</label><select id="numbering" class="ci"><option value="group">年ごとに1から</option><option value="seq">全体で連番（表示順）</option><option value="chrono">全体で連番（古い順に1から）</option></select></div>
+      <div class="ctl"><label for="maxAu">著者の表示</label><select id="maxAu" class="ci"><option value="0">全員</option><option value="3">先頭3名＋et al</option><option value="6">先頭6名＋et al</option><option value="10">先頭10名＋et al</option></select></div>
+      <div class="ctl"><label for="jname">雑誌名</label><select id="jname" class="ci"><option value="abbr">略称 (J Infect Chemother)</option><option value="full">正式名</option></select></div>
+    </div>
+    <div class="chk" style="margin-top:8px">
+      <label><input type="checkbox" id="showPmid" class="ci" checked> PMIDを付ける</label>
+      <label><input type="checkbox" id="showDoi" class="ci" checked> DOIを付ける</label>
+      <label><input type="checkbox" id="hideZero" class="ci"> 件数0の種別を見出しから省く</label>
+    </div>
+  </details>
+</section>
+
+<div id="stat2" class="stat" aria-live="polite"></div>
+
+<div class="tabs noprint" role="tablist" aria-label="表示切替">
+  <button class="tab" role="tab" id="t-summary" aria-controls="p-summary" aria-selected="true" type="button">集計・グラフ</button>
+  <button class="tab" role="tab" id="t-list" aria-controls="p-list" aria-selected="false" type="button">業績リスト</button>
+  <button class="tab" role="tab" id="t-table" aria-controls="p-table" aria-selected="false" type="button">一覧表（ソート）</button>
+</div>
+
+<section id="p-summary" role="tabpanel" aria-labelledby="t-summary"></section>
+<section id="p-list" role="tabpanel" aria-labelledby="t-list" hidden></section>
+<section id="p-table" role="tabpanel" aria-labelledby="t-table" hidden></section>
+
+<footer>
+  本ツールは AI（Claude, Anthropic）を用いて作成されました。内容（種別の自動分類・集計結果を含む）には誤りが含まれる可能性があります。医療上の判断には必ず公式の教科書・文献・専門家の指導を参照してください。<br>
+  二次利用・再配布は自己責任のもとで可能です。その際、本注記の保持を推奨します。
+</footer>
+</div>
+<div id="toast" role="status"></div>
+
+<script>
+'use strict';
+// ==PURE-START==
+const CATS=['review','systematic review','original','case','other'];
+const CCOL={'review':'#E69F00','systematic review':'#CC79A7','original':'#0072B2','case':'#009E73','other':'#8c8c8c'};
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const MON={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12,spring:4,summer:7,fall:10,autumn:10,winter:1};
+
+function normName(s){
+  return String(s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[.,\-]/g,' ').replace(/\s+/g,' ').trim();
+}
+function parseAuthorInput(s){
+  s=String(s||'').trim(); if(!s) return [];
+  const parts=/[;；|、\n]/.test(s)?s.split(/[;；|、\n]+/):s.split(/[,，]+/);
+  return parts.map(normName).filter(Boolean);
+}
+function expandPages(p){
+  const m=String(p||'').match(/^(\d+)-(\d+)$/);
+  if(m&&m[2].length<m[1].length) return m[1]+'-'+m[1].slice(0,m[1].length-m[2].length)+m[2];
+  return p||'';
+}
+function parseDP(s){
+  if(!s) return null;
+  const m=String(s).match(/^(\d{4})(?:\s+([A-Za-z]+))?(?:[-\/][A-Za-z]+)?(?:\s+(\d{1,2}))?/);
+  if(!m) return null;
+  let mo=0;
+  if(m[2]){const k=m[2].toLowerCase();mo=MON[k]||MON[k.slice(0,3)]||0;}
+  return {y:+m[1],m:mo,d:mo&&m[3]?+m[3]:0};
+}
+function parseDEP(s){
+  const m=String(s||'').match(/^(\d{4})(\d{2})(\d{2})/);
+  return m?{y:+m[1],m:+m[2],d:+m[3]}:null;
+}
+function cmpEarly(a,b){
+  if(a.y!==b.y) return a.y-b.y;
+  if(!a.m&&b.m) return 1;
+  if(a.m&&!b.m) return -1;
+  if(a.m!==b.m) return a.m-b.m;
+  return (a.d||0)-(b.d||0);
+}
+function pickDate(r,basis){
+  const a=r.dpD,b=r.depD; let d;
+  if(basis==='dep') d=b||a;
+  else if(basis==='earliest') d=(a&&b)?(cmpEarly(a,b)<=0?a:b):(a||b);
+  else d=a||b;
+  if(!d) return null;
+  if(!d.m){
+    const o=[a,b].find(x=>x&&x!==d&&x.y===d.y&&x.m);
+    if(o) return {y:d.y,m:o.m,d:o.d,est:true};
+  }
+  return d;
+}
+const OTHER_PT=new Set(['editorial','letter','comment','news','published erratum','retraction of publication','retracted publication','interview','biography','introductory journal article','lecture','congress','newspaper article','webcast','portrait','historical article','personal narrative','expression of concern','corrected and republished article','preprint','autobiography','legal case','consensus development conference','guideline','practice guideline','technical report','duplicate publication','patient education handout','video-audio media','directory','dataset','clinical conference','festschrift','address','bibliography','overall','classical article','government publication','scientific integrity review','published erratum']);
+function classify(r,useTitle){
+  const pt=new Set((r.pt||[]).map(x=>x.toLowerCase()));
+  const has=a=>a.some(x=>pt.has(x));
+  if(has(['systematic review','meta-analysis','network meta-analysis'])) return 'systematic review';
+  if(has(['review','scoping review'])) return 'review';
+  if(has(['case reports'])) return 'case';
+  for(const p of pt) if(OTHER_PT.has(p)) return 'other';
+  if(useTitle||!r.ptKnown){
+    const t=r.title||'';
+    if(/systematic review|meta-?analys[ie]s/i.test(t)) return 'systematic review';
+    if(/^(erratum|correction|corrigendum|comment on|comments on|reply to|retraction|editorial)\b/i.test(t)) return 'other';
+    if(/\bcase (report|series|presentation)s?\b|\ba case of\b|:\s*a case\b/i.test(t)) return 'case';
+    if(/\breview\b/i.test(t)&&!/\b(peer|retrospective|chart|medical record|records?)\s+review\b/i.test(t)) return 'review';
+  }
+  return 'original';
+}
+function recFromMedline(f){
+  const g=k=>(f[k]&&f[k][0])||'';
+  let title=(g('TI')||g('BTI')||g('VTI')||g('TT')).trim();
+  if(!title) return null;
+  title=title.replace(/^\[(.*)\]\.?$/,'$1').replace(/\.$/,'');
+  const AU=f.AU||[],FAU=f.FAU||[];
+  let authors=AU.map((n,i)=>({n,f:FAU.length===AU.length?FAU[i]:''}));
+  if(!authors.length&&f.CN) authors=f.CN.map(n=>({n,f:''}));
+  const ids=[].concat(f.AID||[],f.LID||[]);
+  const ds=ids.find(x=>/\[doi\]\s*$/i.test(x));
+  return {pmid:g('PMID'),title,authors,ja:g('TA'),jf:g('JT'),vol:g('VI'),iss:g('IP'),pg:expandPages(g('PG')),
+    doi:ds?ds.replace(/\s*\[doi\]\s*$/i,''):'',dp:g('DP'),dpD:parseDP(g('DP')),depD:parseDEP(g('DEP')),
+    pt:f.PT||[],ptKnown:true,fmt:'medline',lang:g('LA')};
+}
+function parseMedline(text){
+  const recs=[];let cur=null,last=null,failed=0;
+  const flush=()=>{if(cur&&Object.keys(cur).length){const r=recFromMedline(cur);if(r)recs.push(r);else failed++;}cur=null;last=null;};
+  for(const line of text.split('\n')){
+    const m=line.match(/^([A-Z][A-Z0-9]{1,3})\s*-\s?(.*)$/);
+    if(m){
+      if(m[1]==='PMID') flush();
+      if(!cur) cur={};
+      (cur[m[1]]=cur[m[1]]||[]).push(m[2].trim());last=m[1];
+    }else if(cur&&last&&/^\s{4,}\S/.test(line)){
+      const a=cur[last];a[a.length-1]+=' '+line.trim();
+    }
+  }
+  flush();
+  return {recs,failed};
+}
+const DATE_RE=/\.\s+(\d{4})(?:\s+([A-Za-z]{3,9})(?:[-\/][A-Za-z]{3,9})?)?(?:\s+(\d{1,2}))?\s*([;:.])/;
+function recFromSummary(blk){
+  const paras=blk.join('\n').split(/\n\s*\n/).map(p=>p.replace(/\s*\n\s*/g,' ').trim()).filter(Boolean);
+  if(!paras.length) return null;
+  const p0=paras[0].replace(/^\d+[.:]\s*/,'');
+  const full=paras.join(' ');
+  const dm=p0.match(DATE_RE);
+  if(!dm) return null;
+  const head=p0.slice(0,dm.index);
+  const tk=head.split(/\.\s+/);
+  let authStr='',title='',journal='';
+  if(tk.length===1&&paras.length>=3){journal=tk[0];title=paras[1];authStr=/^author information/i.test(paras[2])?'':paras[2];}
+  else if(tk.length>=3){authStr=tk[0];journal=tk[tk.length-1];title=tk.slice(1,-1).join('. ');}
+  else if(tk.length===2){title=tk[0];journal=tk[1];}
+  else return null;
+  title=title.trim().replace(/^\[(.*)\]\.?$/,'$1').replace(/\.$/,'');
+  if(!title) return null;
+  const authors=authStr.replace(/\.$/,'').split(/,\s*/).map(s=>s.trim()).filter(s=>s&&!/^et al$/i.test(s)).map(n=>({n,f:''}));
+  const mo=dm[2]?(MON[dm[2].toLowerCase()]||MON[dm[2].toLowerCase().slice(0,3)]||0):0;
+  const dpD={y:+dm[1],m:mo,d:mo&&dm[3]?+dm[3]:0};
+  let vol='',iss='',pg='';
+  if(dm[4]===';'){
+    const t=p0.slice(dm.index+dm[0].length);
+    const tm=t.match(/^\s*([^\s(:;.]*)(?:\(([^)]*)\))?(?::\s*([^\s.]+(?:-[^\s.]+)?))?/);
+    if(tm){vol=tm[1]||'';iss=tm[2]||'';pg=expandPages(tm[3]||'');}
+  }
+  const em=full.match(/Epub\s+(\d{4})\s+([A-Za-z]{3,9})\s+(\d{1,2})/);
+  const depD=em?{y:+em[1],m:MON[em[2].toLowerCase().slice(0,3)]||0,d:+em[3]}:null;
+  const pm=full.match(/PMID:\s*(\d+)/);
+  const dd=full.match(/doi:\s*(10\.\S+?)\.?(?=\s|$)/i);
+  return {pmid:pm?pm[1]:'',title,authors,ja:journal,jf:journal,vol,iss,pg,doi:dd?dd[1]:'',dp:'',dpD,depD,pt:[],ptKnown:false,fmt:'summary',lang:''};
+}
+function parseSummary(text){
+  const blocks=[];let cur=null,exp=1;
+  for(const ln of text.split('\n')){
+    const m=ln.match(/^(\d+)[.:]\s+\S/);
+    if(m&&(cur===null||+m[1]===exp)){if(cur)blocks.push(cur);cur=[ln];exp=+m[1]+1;}
+    else if(cur) cur.push(ln);
+  }
+  if(cur) blocks.push(cur);
+  const recs=[];let failed=0;
+  for(const b of blocks){const r=recFromSummary(b);if(r)recs.push(r);else failed++;}
+  return {recs,failed};
+}
+function parseAny(text){
+  text=String(text).replace(/^\uFEFF/,'').replace(/\r\n?/g,'\n');
+  if(/^PMID-\s/m.test(text)||/^TI\s{2}-\s/m.test(text)) return Object.assign({fmt:'medline'},parseMedline(text));
+  return Object.assign({fmt:'summary'},parseSummary(text));
+}
+const GEN='Staphylococcus|Streptococcus|Pseudomonas|Acinetobacter|Candida|Candidozyma|Escherichia|Klebsiella|Enterococcus|Mycobacterium|Mycobacteroides|Salmonella|Clostridioides|Clostridium|Helicobacter|Aspergillus|Cryptococcus|Legionella|Neisseria|Haemophilus|Bacillus|Vibrio|Campylobacter|Burkholderia|Stenotrophomonas|Enterobacter|Serratia|Proteus|Citrobacter|Bacteroides|Listeria|Treponema|Borrelia|Chlamydia|Chlamydophila|Mycoplasma|Ureaplasma|Nocardia|Trichosporon|Fusarium|Mucor|Rhizopus|Pneumocystis|Cutibacterium|Corynebacterium|Lactobacillus|Bifidobacterium|Shigella|Yersinia|Francisella|Brucella|Bartonella|Rickettsia|Orientia|Coxiella|Leptospira|Actinomyces|Streptomyces|Moraxella|Morganella|Providencia|Elizabethkingia|Achromobacter|Aeromonas|Fusobacterium|Prevotella|Porphyromonas|Cronobacter|Pantoea|Raoultella|Malassezia|Histoplasma|Coccidioides|Blastomyces|Talaromyces|Scedosporium|Lomentospora|Rhodotorula|Saccharomyces|Cryptosporidium|Giardia|Plasmodium|Toxoplasma|Trypanosoma|Leishmania|Entamoeba|Strongyloides|Schistosoma|Anisakis|Akkermansia|Faecalibacterium|Bordetella|Pasteurella|Gardnerella|Veillonella|Tropheryma|Rothia|Kocuria|Micrococcus|Paenibacillus|Cupriavidus|Ralstonia|Sphingomonas|Xanthomonas|Wolbachia|Anaplasma|Ehrlichia|Tannerella';
+const EPI='aeruginosa|aureus|auris|albicans|glabrata|tropicalis|parapsilosis|krusei|haemulonii|duobushaemulonii|lusitaniae|guilliermondii|baumannii|calcoaceticus|pittii|nosocomialis|lwoffii|coli|pneumoniae|oxytoca|variicola|quasipneumoniae|tuberculosis|bovis|avium|intracellulare|abscessus|massiliense|bolletii|kansasii|leprae|marinum|ulcerans|xenopi|chimaera|difficile|perfringens|tetani|botulinum|faecalis|faecium|gallinarum|epidermidis|haemolyticus|lugdunensis|saprophyticus|pseudintermedius|pyogenes|agalactiae|mutans|dysgalactiae|anginosus|constellatus|intermedius|gordonii|sanguinis|oralis|mitis|maltophilia|cepacia|pseudomallei|multivorans|influenzae|parainfluenzae|jirovecii|carinii|neoformans|gattii|fumigatus|flavus|niger|terreus|nidulans|enterica|bongori|flexneri|sonnei|pylori|jejuni|cholerae|parahaemolyticus|vulnificus|monocytogenes|pallidum|burgdorferi|trachomatis|psittaci|catarrhalis|meningitidis|gonorrhoeae|marcescens|cloacae|aerogenes|hormaechei|freundii|koseri|mirabilis|vulgaris|fragilis|thetaiotaomicron|anthracis|cereus|subtilis|pestis|pseudotuberculosis|enterocolitica|tularensis|rickettsii|tsutsugamushi|burnetii|hominis|urealyticum|parvum|genitalium|acnes|striatum|diphtheriae|asteroides|brasiliensis|cyriacigeorgica|farcinica|asahii|laurentii|pertussis|parapertussis|multocida|vaginalis|casei|rhamnosus|plantarum|acidophilus|hydrophila|veronii|nucleatum|gingivalis|sakazakii|agglomerans|ornithinolytica|xylosoxidans|anophelis|morganii|stuartii|rettgeri|alcalifaciens|brucei|cruzi|donovani|infantum|falciparum|vivax|gondii|lamblia|histolytica|capsulatum|immitis|dermatitidis|marneffei|boydii|prolificans|mucilaginosa|cerevisiae|furfur|globosa|sympodialis|pachydermatis|muciniphila|prausnitzii';
+const SCI_RE=new RegExp('\\b('+GEN+')\\b(?:\\s+('+EPI+')\\b)?','g');
+const ABBR_RE=new RegExp('\\b([ABCEHKLMNPSVY])\\.\\s+('+EPI+')\\b','g');
+function italicSci(t){
+  t=t.replace(ABBR_RE,m=>'<i>'+m+'</i>');
+  return t.replace(SCI_RE,m=>'<i>'+m+'</i>');
+}
+// ==PURE-END==
+
+/* ================= アプリ本体 ================= */
+const $=id=>document.getElementById(id);
+const S={recs:[],ids:new Map(),ov:new Map(),sort:{k:'date',d:-1},files:[],dup:0,failed:0,model:null,rows:[],tab:'summary'};
+const SAVE=['author','prefix','apos','unit','fyStart','basis','gorder','iorder','numbering','maxAu','jname','showPmid','showDoi','hideZero','titleHeur'];
+
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),1800);}
+
+function opts(){
+  return {
+    unit:$('unit').value,fyStart:+$('fyStart').value||4,basis:$('basis').value,
+    authors:parseAuthorInput($('author').value),prefix:$('prefix').checked,apos:$('apos').value,
+    cats:new Set([...document.querySelectorAll('.catchk')].filter(c=>c.checked).map(c=>c.dataset.cat)),
+    from:$('from').value,to:$('to').value,q:$('q').value.trim().toLowerCase(),
+    gorder:$('gorder').value,iorder:$('iorder').value,numbering:$('numbering').value,
+    maxAu:+$('maxAu').value,jname:$('jname').value,
+    pmid:$('showPmid').checked,doi:$('showDoi').checked,hideZero:$('hideZero').checked,titleHeur:$('titleHeur').checked
+  };
+}
+function auMatcher(o){
+  const eq=(n,q)=>n===q||(o.prefix&&n.startsWith(q)&&/^[a-z]*$/.test(n.slice(q.length)));
+  return a=>{
+    if(!o.authors.length) return false;
+    const n1=normName(a.n),n2=a.f?normName(a.f):'';
+    return o.authors.some(q=>eq(n1,q)||(n2&&eq(n2,q)));
+  };
+}
+function derive(r,o,idx,match){
+  const d=pickDate(r,o.basis);
+  const y=d?d.y:0,m=(d&&d.m)||0,dd=(d&&d.d)||0;
+  const fy=!y?0:(m?(m>=o.fyStart?y:y-1):y);
+  const hit=r.authors.map(a=>match(a));
+  const n=r.authors.length;
+  return {r,idx,y,m,key:y*10000+m*100+dd,fy,g:o.unit==='fy'?fy:y,
+    cat:S.ov.get(r.id)||classify(r,o.titleHeur),hit,any:hit.some(Boolean),first:!!hit[0],last:n>1&&!!hit[n-1],mUnknown:!!y&&!m};
+}
+function applyFilters(all,o){
+  return all.filter(x=>{
+    if(!o.cats.has(x.cat)) return false;
+    if(o.apos!=='all'&&o.authors.length){
+      if(o.apos==='any'&&!x.any) return false;
+      if(o.apos==='first'&&!x.first) return false;
+      if(o.apos==='last'&&!x.last) return false;
+      if(o.apos==='firstlast'&&!(x.first||x.last)) return false;
+    }
+    if(o.from&&(!x.g||x.g<+o.from)) return false;
+    if(o.to&&(!x.g||x.g>+o.to)) return false;
+    if(o.q&&!x.r.hay.includes(o.q)) return false;
+    return true;
+  });
+}
+function aggregate(rows){
+  const m=new Map();
+  for(const x of rows){
+    let e=m.get(x.g);
+    if(!e){e={g:x.g,total:0,c:{},first:0,last:0,rows:[]};CATS.forEach(c=>e.c[c]=0);m.set(x.g,e);}
+    e.total++;e.c[x.cat]++;if(x.first)e.first++;if(x.last)e.last++;e.rows.push(x);
+  }
+  return [...m.values()];
+}
+function orderGroups(gs,dir){
+  const known=gs.filter(g=>g.g).sort((a,b)=>dir==='desc'?b.g-a.g:a.g-b.g);
+  return known.concat(gs.filter(g=>!g.g));
+}
+const glabel=(g,o)=>!g?'年不明':g+(o.unit==='fy'?'年度':'年');
+function headline(e,o){
+  return glabel(e.g,o)+' total '+e.total+' ('+CATS.filter(c=>!o.hideZero||e.c[c]).map(c=>c+' '+e.c[c]).join(', ')+')';
+}
+function dateCmp(dir){ // dir: -1 新しい順 / 1 古い順
+  return (a,b)=>{const k=(a.key-b.key)*dir;return k!==0?k:(b.idx-a.idx)*dir;};
+}
+
+/* ---- 文献書式 ---- */
+const MONN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function dpString(r,x){
+  if(r.dp) return r.dp;
+  const d=r.dpD||r.depD;
+  if(!d) return x.y?String(x.y):'n.d.';
+  return d.y+(d.m?' '+MONN[d.m-1]+(d.d?' '+d.d:''):'');
+}
+function refBuild(x,o){
+  const r=x.r;let au=r.authors,more=false;
+  if(o.maxAu&&au.length>o.maxAu){au=au.slice(0,o.maxAu);more=true;}
+  const tail=more?', et al':'';
+  const auH=au.map((a,i)=>x.hit[i]?'<u>'+esc(a.n)+'</u>':esc(a.n)).join(', ')+tail;
+  const auT=au.map(a=>a.n).join(', ')+tail;
+  const jn=(o.jname==='full'?(r.jf||r.ja):(r.ja||r.jf)||'').replace(/\.$/,'');
+  const end=/[.?!]$/.test(r.title)?'':'.';
+  const dp=dpString(r,x);
+  let c=dp;
+  if(r.vol||r.iss) c+=';'+r.vol+(r.iss?'('+r.iss+')':'')+(r.pg?':'+r.pg:'');
+  else if(r.pg) c+=':'+r.pg;
+  c+='.';
+  let epub='';
+  if(!r.vol&&!r.iss) epub='Epub ahead of print.';
+  else if(r.depD&&r.depD.m) epub='Epub '+r.depD.y+' '+MONN[r.depD.m-1]+(r.depD.d?' '+r.depD.d:'')+'.';
+  let h=(auH?auH+'. ':'')+italicSci(esc(r.title))+end+' '+(jn?esc(jn)+'. ':'')+esc(c);
+  let t=(auT?auT+'. ':'')+r.title+end+' '+(jn?jn+'. ':'')+c;
+  if(o.doi&&r.doi){h+=' doi: <a href="https://doi.org/'+esc(r.doi)+'" target="_blank" rel="noopener">'+esc(r.doi)+'</a>.';t+=' doi: '+r.doi+'.';}
+  if(epub){h+=' '+epub;t+=' '+epub;}
+  if(o.pmid&&r.pmid){h+=' PMID: <a href="https://pubmed.ncbi.nlm.nih.gov/'+esc(r.pmid)+'/" target="_blank" rel="noopener">'+esc(r.pmid)+'</a>.';t+=' PMID: '+r.pmid+'.';}
+  return {h,t};
+}
+function listModel(rows,gs,o){
+  const chrono=new Map();
+  if(o.numbering==='chrono'){rows.slice().sort(dateCmp(1)).forEach((x,i)=>chrono.set(x.idx,i+1));}
+  let seq=0;const model=[];
+  for(const e of orderGroups(gs,o.gorder)){
+    const rs=e.rows.slice().sort(dateCmp(o.iorder==='desc'?-1:1));
+    model.push({g:e.g,head:headline(e,o),items:rs.map((x,i)=>{
+      const no=o.numbering==='group'?i+1:o.numbering==='seq'?++seq:chrono.get(x.idx);
+      const b=refBuild(x,o);return {no,h:b.h,t:b.t};
+    })});
+  }
+  return model;
+}
+
+/* ---- グラフ ---- */
+function niceStep(x){const p=Math.pow(10,Math.floor(Math.log10(x)));const f=x/p;return (f<=1?1:f<=2?2:f<=5?5:10)*p;}
+function chartSvg(gsAsc,o){
+  if(!gsAsc.length) return '';
+  const W=900,H=400,L=46,R=14,T=28,B=78;
+  const max=Math.max(...gsAsc.map(g=>g.total));
+  const step=Math.max(1,niceStep(max/5));const ymax=Math.ceil(max/step)*step||1;
+  const iw=W-L-R,ih=H-T-B,n=gsAsc.length,bw=iw/n,bar=Math.min(64,bw*0.72);
+  const Y=v=>T+ih-(v/ymax)*ih;
+  let s=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.unit==='fy'?'年度':'年'}別の論文数（種別内訳の積み上げ棒グラフ）">`;
+  for(let v=0;v<=ymax;v+=step){s+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="currentColor" opacity=".16"/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end">${v}</text>`;}
+  gsAsc.forEach((g,i)=>{
+    const cx=L+bw*i+bw/2;let acc=0;
+    const tip=glabel(g.g,o)+' total '+g.total+' ('+CATS.map(c=>c+' '+g.c[c]).join(', ')+')';
+    s+=`<g><title>${esc(tip)}</title>`;
+    for(const c of CATS){const v=g.c[c];if(!v)continue;s+=`<rect x="${cx-bar/2}" y="${Y(acc+v)}" width="${bar}" height="${Y(acc)-Y(acc+v)}" fill="${CCOL[c]}"/>`;acc+=v;}
+    s+=`<text x="${cx}" y="${Y(g.total)-5}" text-anchor="middle" font-weight="700">${g.total}</text>`;
+    const lb=g.g||'不明';
+    s+=n>12?`<text transform="translate(${cx},${T+ih+14}) rotate(-45)" text-anchor="end">${lb}</text>`:`<text x="${cx}" y="${T+ih+18}" text-anchor="middle">${lb}</text>`;
+    s+='</g>';
+  });
+  s+=`<line x1="${L}" x2="${W-R}" y1="${T+ih}" y2="${T+ih}" stroke="currentColor"/>`;
+  let lx=L;
+  for(const c of CATS){s+=`<rect x="${lx}" y="${H-16}" width="12" height="12" fill="${CCOL[c]}"/><text x="${lx+17}" y="${H-5}">${c}</text>`;lx+=26+c.length*8.2;}
+  return s+'</svg>';
+}
+
+/* ---- 描画 ---- */
+function renderSummary(rows,gs,o,all){
+  const el=$('p-summary');
+  if(!S.recs.length){el.innerHTML='<p class="small">ファイルを読み込むと、ここに集計とグラフが表示されます。</p>';return;}
+  if(!rows.length){el.innerHTML='<p>条件に合う論文がありません。フィルターを見直してください。</p>';return;}
+  let h='';
+  const mu=rows.filter(x=>x.mUnknown).length;
+  if(o.unit==='fy'&&mu) h+=`<div class="notice">${mu}件は発行月が不明のため、年度の振り分けが暫定です（開始月以降とみなして、同じ数字の年度に入れています）。</div>`;
+  const nk=rows.filter(x=>!x.r.ptKnown).length;
+  if(nk) h+=`<div class="notice">${nk}件は論文種別（Publication Type）を含まない形式のため、題名から種別を推定しています。「一覧表」タブで種別を修正できます。</div>`;
+  const nd=rows.filter(x=>!x.y).length;
+  if(nd) h+=`<div class="notice">${nd}件は日付が取得できず「年不明」に入っています。</div>`;
+  const ordered=orderGroups(gs,o.gorder);const hasAu=o.authors.length>0;
+  h+='<h2>'+(o.unit==='fy'?'年度':'年')+'別の集計</h2><div class="scroll"><table class="tbl"><thead><tr><th>'+(o.unit==='fy'?'年度':'年')+'</th><th class="num">total</th>'+CATS.map(c=>`<th class="num"><span class="dot" style="background:${CCOL[c]}"></span>${c}</th>`).join('')+(hasAu?'<th class="num">筆頭</th><th class="num">最終</th>':'')+'</tr></thead><tbody>';
+  const tot={total:0,c:{},first:0,last:0};CATS.forEach(c=>tot.c[c]=0);
+  for(const e of ordered){
+    tot.total+=e.total;tot.first+=e.first;tot.last+=e.last;CATS.forEach(c=>tot.c[c]+=e.c[c]);
+    h+=`<tr><td><a href="#" class="jump" data-g="${e.g}">${glabel(e.g,o)}</a></td><td class="num"><strong>${e.total}</strong></td>`+CATS.map(c=>`<td class="num">${e.c[c]}</td>`).join('')+(hasAu?`<td class="num">${e.first}</td><td class="num">${e.last}</td>`:'')+'</tr>';
+  }
+  h+=`<tr class="total"><td>合計</td><td class="num">${tot.total}</td>`+CATS.map(c=>`<td class="num">${tot.c[c]}</td>`).join('')+(hasAu?`<td class="num">${tot.first}</td><td class="num">${tot.last}</td>`:'')+'</tr></tbody></table></div>';
+  if(hasAu) h+='<p class="small">筆頭・最終は指定著者が筆頭著者／最終著者（著者2名以上）の論文数です。</p>';
+  h+='<h2>グラフ</h2>'+chartSvg(orderGroups(gs,'asc'),o);
+  el.innerHTML=h;
+}
+function renderList(rows,gs,o){
+  const el=$('p-list');
+  if(!rows.length){el.innerHTML='<p class="small">表示する論文がありません。</p>';S.model=null;return;}
+  const model=listModel(rows,gs,o);S.model=model;
+  let h='<div class="toolbar noprint"><button class="btn" id="cpRich" type="button">書式付きでコピー（下線・斜体を保持）</button><button class="btn ghost" id="cpText" type="button">テキストでコピー</button><button class="btn ghost" id="dlCsv" type="button">CSVを保存</button><span class="small">下線＝指定著者／斜体＝学名（自動判定）</span></div><div id="listBody">';
+  for(const g of model){
+    h+=`<section class="grp" id="g-${g.g}"><h3>${esc(g.head)}</h3>`;
+    for(const it of g.items) h+=`<div class="ref">${it.no}. ${it.h}</div>`;
+    h+='</section>';
+  }
+  el.innerHTML=h+'</div>';
+}
+const TCOLS=[['idx','No.'],['date','日付'],['cat','種別'],['title','題名'],['journal','雑誌'],['au','著者'],['n','人数'],['pos','指定著者'],['pmid','PMID']];
+function sortVal(x,k){
+  switch(k){
+    case 'idx':return x.idx;case 'date':return x.key;case 'cat':return CATS.indexOf(x.cat);
+    case 'title':return x.r.title.toLowerCase();case 'journal':return (x.r.ja||x.r.jf).toLowerCase();
+    case 'au':return (x.r.authors[0]?x.r.authors[0].n:'').toLowerCase();case 'n':return x.r.authors.length;
+    case 'pos':return x.first?0:x.last?1:x.any?2:3;case 'pmid':return +x.r.pmid||0;
+  }
+}
+function renderTable(rows,o){
+  const el=$('p-table');
+  if(!rows.length){el.innerHTML='<p class="small">表示する論文がありません。</p>';return;}
+  const {k,d}=S.sort;
+  const sorted=rows.slice().sort((a,b)=>{const va=sortVal(a,k),vb=sortVal(b,k);return (va<vb?-1:va>vb?1:0)*d||(a.idx-b.idx);});
+  let h='<p class="small">列見出しをクリックすると並べ替えできます。種別は選択して手動で修正でき、集計にもすぐ反映されます。</p><div class="scroll"><table class="tbl"><thead><tr>';
+  for(const [key,lb] of TCOLS){
+    const on=key===k;
+    h+=`<th class="sortable${key==='n'||key==='idx'?' num':''}" tabindex="0" role="button" data-k="${key}" aria-sort="${on?(d>0?'ascending':'descending'):'none'}">${lb}${on?(d>0?' ▲':' ▼'):''}</th>`;
+  }
+  h+='</tr></thead><tbody id="tbody">';
+  for(const x of sorted){
+    const r=x.r;
+    const au=r.authors.map((a,i)=>x.hit[i]?'<u>'+esc(a.n)+'</u>':esc(a.n)).join(', ');
+    const pos=!o.authors.length?'':x.first?'筆頭':x.last?'最終':x.any?'共著':'―';
+    h+=`<tr><td class="num">${x.idx+1}</td><td>${x.y?x.y+'-'+(x.m?String(x.m).padStart(2,'0'):'??'):'―'}</td>`+
+      `<td><select data-id="${esc(r.id)}" aria-label="種別">${CATS.map(c=>`<option${c===x.cat?' selected':''}>${c}</option>`).join('')}</select></td>`+
+      `<td>${italicSci(esc(r.title))}</td><td>${esc(r.ja||r.jf)}</td><td class="au-cell">${au}</td><td class="num">${r.authors.length}</td><td>${pos}</td>`+
+      `<td>${r.pmid?`<a href="https://pubmed.ncbi.nlm.nih.gov/${esc(r.pmid)}/" target="_blank" rel="noopener">${esc(r.pmid)}</a>`:''}</td></tr>`;
+  }
+  el.innerHTML=h+'</tbody></table></div>';
+}
+function fillRange(all){
+  const gs=[...new Set(all.map(x=>x.g).filter(Boolean))].sort((a,b)=>a-b);
+  for(const id of ['from','to']){
+    const el=$(id),cur=el.value;
+    el.innerHTML='<option value="">'+(id==='from'?'最初から':'最後まで')+'</option>'+gs.map(g=>`<option value="${g}">${g}</option>`).join('');
+    if(gs.includes(+cur)) el.value=cur;
+  }
+}
+function refreshAll(){
+  const o0=opts();
+  const all0=S.recs.map((r,i)=>derive(r,o0,i,auMatcher(o0)));
+  fillRange(all0);
+  const o=opts();
+  const all=S.recs.map((r,i)=>derive(r,o,i,auMatcher(o)));
+  const rows=applyFilters(all,o);
+  S.rows=rows;S.o=o;
+  const gs=aggregate(rows);
+  $('stat2').textContent=S.recs.length?`表示中 ${rows.length}件 / 読み込み ${S.recs.length}件（${gs.length}グループ）`:'';
+  renderSummary(rows,gs,o,all);renderList(rows,gs,o);renderTable(rows,o);
+}
+let _t;function schedule(){clearTimeout(_t);_t=setTimeout(()=>{saveSettings();refreshAll();},120);}
+
+/* ---- 読み込み ---- */
+function ingest(text,name){
+  const res=parseAny(text);let added=0,dup=0;
+  for(const r of res.recs){
+    const key=r.pmid?'p'+r.pmid:'t'+r.title.toLowerCase().slice(0,80)+'|'+(r.dpD?r.dpD.y:'');
+    if(S.ids.has(key)){dup++;continue;}
+    r.id=key;r.hay=(r.title+' '+(r.ja||'')+' '+(r.jf||'')+' '+r.authors.map(a=>a.n).join(' ')+' '+r.pmid+' '+r.doi).toLowerCase();
+    S.ids.set(key,1);S.recs.push(r);added++;
+  }
+  S.dup+=dup;S.failed+=res.failed;
+  S.files.push(`${name}：${res.fmt==='medline'?'MEDLINE形式':'Summary/Abstract形式（種別は推定）'} ${added}件`+(dup?`（重複${dup}件を除外）`:'')+(res.failed?`（解析できず${res.failed}件）`:''));
+  return added;
+}
+function updateLoadStat(){
+  $('loadStat').innerHTML=S.recs.length?esc(`読み込み済み：${S.recs.length}件 ／ `)+S.files.map(esc).join(' ／ '):'まだ読み込まれていません。';
+}
+async function addFiles(files){
+  let n=0;
+  for(const f of files){try{n+=ingest(await f.text(),f.name);}catch(e){S.files.push(f.name+'：読み込みに失敗しました');}}
+  updateLoadStat();refreshAll();
+  toast(n?`${n}件を追加しました`:'追加できる論文がありませんでした');
+}
+
+/* ---- 出力 ---- */
+function copyRich(){
+  const el=$('listBody');if(!el) return;
+  const r=document.createRange();r.selectNodeContents(el);
+  const s=getSelection();s.removeAllRanges();s.addRange(r);
+  let ok=false;try{ok=document.execCommand('copy');}catch(e){}
+  s.removeAllRanges();toast(ok?'書式付きでコピーしました':'コピーに失敗しました（手動で選択してコピーしてください）');
+}
+function plainText(){
+  if(!S.model) return '';
+  return S.model.map(g=>g.head+'\n'+g.items.map(it=>it.no+'. '+it.t).join('\n')).join('\n\n');
+}
+async function copyText(){
+  const t=plainText();
+  try{await navigator.clipboard.writeText(t);toast('テキストをコピーしました');return;}catch(e){}
+  const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();
+  let ok=false;try{ok=document.execCommand('copy');}catch(e){}
+  ta.remove();toast(ok?'テキストをコピーしました':'コピーに失敗しました');
+}
+function dlCsv(){
+  const o=S.o,q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const head=['PMID','年','月','年度','種別','題名','著者','雑誌','巻','号','頁','DOI'];
+  const lines=[head.map(q).join(',')];
+  for(const x of S.rows.slice().sort(dateCmp(-1))){
+    const r=x.r;
+    lines.push([r.pmid,x.y||'',x.m||'',x.fy||'',x.cat,r.title,r.authors.map(a=>a.n).join(', '),r.ja||r.jf,r.vol,r.iss,r.pg,r.doi].map(q).join(','));
+  }
+  const b=new Blob(['\uFEFF'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='publications.csv';document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+}
+
+/* ---- 設定の保存 ---- */
+function saveSettings(){
+  try{const v={};for(const id of SAVE){const e=$(id);v[id]=e.type==='checkbox'?e.checked:e.value;}localStorage.setItem('pubmedAgg.v2',JSON.stringify(v));}catch(e){}
+}
+function loadSettings(){
+  try{const v=JSON.parse(localStorage.getItem('pubmedAgg.v2')||'{}');
+    for(const id of SAVE){if(!(id in v))continue;const e=$(id);if(e.type==='checkbox')e.checked=!!v[id];else e.value=v[id];}
+  }catch(e){}
+}
+function setTab(t){
+  S.tab=t;
+  for(const k of ['summary','list','table']){
+    $('p-'+k).hidden=k!==t;$('t-'+k).setAttribute('aria-selected',k===t);
+  }
+}
+
+/* ---- 初期化 ---- */
+(function init(){
+  $('fyStart').innerHTML=Array.from({length:12},(_,i)=>`<option value="${i+1}"${i===3?' selected':''}>${i+1}月</option>`).join('');
+  $('catChecks').innerHTML=CATS.map(c=>`<label><input type="checkbox" class="catchk ci" data-cat="${c}" checked><span class="dot" style="background:${CCOL[c]}"></span>${c}</label>`).join('');
+  loadSettings();
+  document.querySelectorAll('.ci').forEach(e=>{e.addEventListener('input',schedule);e.addEventListener('change',schedule);});
+  $('pick').onclick=()=>$('file').click();
+  $('file').onchange=e=>{addFiles([...e.target.files]);e.target.value='';};
+  $('clear').onclick=()=>{S.recs=[];S.ids.clear();S.ov.clear();S.files=[];S.dup=0;S.failed=0;updateLoadStat();refreshAll();toast('クリアしました');};
+  $('pasteGo').onclick=()=>{const t=$('paste').value;if(!t.trim())return;const n=ingest(t,'貼り付け'+(S.files.length+1));$('paste').value='';updateLoadStat();refreshAll();toast(n?`${n}件を追加しました`:'追加できる論文がありませんでした');};
+  const dz=$('drop');
+  ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('over');}));
+  ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('over');}));
+  dz.addEventListener('drop',e=>addFiles([...e.dataTransfer.files]));
+  for(const k of ['summary','list','table']) $('t-'+k).onclick=()=>setTab(k);
+  document.addEventListener('click',e=>{
+    const t=e.target;
+    if(t.id==='cpRich')copyRich();else if(t.id==='cpText')copyText();else if(t.id==='dlCsv')dlCsv();
+    const j=t.closest&&t.closest('a.jump');
+    if(j){e.preventDefault();setTab('list');const g=document.getElementById('g-'+j.dataset.g);if(g)g.scrollIntoView({behavior:'smooth',block:'start'});}
+    const th=t.closest&&t.closest('th.sortable');
+    if(th){const k=th.dataset.k;S.sort=S.sort.k===k?{k,d:-S.sort.d}:{k,d:k==='date'?-1:1};renderTable(S.rows,S.o);}
+  });
+  document.addEventListener('keydown',e=>{
+    if((e.key==='Enter'||e.key===' ')&&e.target.classList&&e.target.classList.contains('sortable')){e.preventDefault();e.target.click();}
+  });
+  document.addEventListener('change',e=>{
+    const t=e.target;
+    if(t.tagName==='SELECT'&&t.dataset.id){S.ov.set(t.dataset.id,t.value);refreshAll();}
+  });
+  updateLoadStat();refreshAll();
+  autoLoad();
+})();
+
+/* 既定の読み込み：同じフォルダの YukihiroKaneko.txt（?src=ファイル名 で変更可） */
+async function autoLoad(){
+  const src=new URLSearchParams(location.search).get('src')||'YukihiroKaneko.txt';
+  let u;try{u=new URL(src,location.href);}catch(e){return;}
+  if(location.protocol!=='file:'&&u.origin!==location.origin) return;
+  const name=decodeURIComponent(u.pathname.split('/').pop()||src);
+  try{
+    const res=await fetch(u.href,{cache:'no-cache'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const n=ingest(await res.text(),name);
+    const lm=res.headers&&res.headers.get('Last-Modified');
+    if(lm){const d=new Date(lm);if(!isNaN(d))S.files[S.files.length-1]+='（ファイル更新：'+d.toLocaleString('ja-JP')+'）';}
+    updateLoadStat();refreshAll();
+    if(!n) toast(name+' から読み込める論文がありませんでした');
+  }catch(e){
+    $('loadStat').textContent=name+' を自動で読み込めませんでした（'+e.message+'）。ファイルをドロップするか、貼り付けで読み込んでください。';
+  }
+}
+</script>
+</body>
+</html>
