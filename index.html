@@ -15,6 +15,12 @@
 <meta name="theme-color" content="#1e2d50">
 <link rel="icon" href="assets/favicon.png" type="image/png">
 <link rel="stylesheet" href="assets/style.css">
+<style>
+/* 月替わりイラスト（トップ） */
+.month-stage{display:block;max-width:874px;margin:0 auto}
+.month-stage img{display:block;width:100%;height:auto;border-radius:6px}
+.month-stage span{display:block;margin-top:8px;font-size:1rem;text-align:center}
+</style>
 </head>
 <body class="page-index">
 <a class="skip" href="#main">本文へ移動</a>
@@ -41,6 +47,12 @@
     <p class="cta"><a class="btn" href="research.html">研究内容を見る</a><a class="btn ghost" href="members.html">メンバー</a><a class="btn ghost" href="about.html">教室紹介</a></p>
   </div>
   <a class="hero-cal" href="calendar.html"><img src="assets/calendar/2026-11.png" width="2400" height="600" alt="2026年11月のカレンダー「十一人の菌侍」。バイキンズ®のキャラクター11体が並び、下に1か月分の日付が横一列に並ぶ。"><span>今月のカレンダー：2026年11月「十一人の菌侍」</span></a>
+</div></section>
+<section class="section"><div class="wrap">
+  <a class="month-stage" id="month-stage-link" href="calendar.html#m11" title="今月のカレンダーを見る">
+    <img id="month-stage-img" src="top/img-topstage-autumn.png" width="874" height="338" alt="今月のバイキンズ®イラスト（クリックでカレンダー一覧へ）">
+    <span>バイキンズ®カレンダー一覧を見る</span>
+  </a>
 </div></section>
 <section class="section"><div class="wrap">
   <h2 class="sec">お知らせ</h2>
@@ -78,6 +90,19 @@
 (function(){var b=document.querySelector('.nav-toggle'),n=document.getElementById('site-nav');
 if(!b||!n)return;document.documentElement.classList.add('js');
 b.addEventListener('click',function(){var o=n.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false');});})();
+</script>
+<script>
+/* 月替わりイラスト：日本時間の月に合わせて自動で切り替え、クリックで calendar.html#mNN へ */
+(function(){
+  var STAGE={1:"shougatsu.png",2:"setsubun.png",3:"hinamatsuri.png",4:"spring.png",5:"kodomonohi.gif",6:"tsuyu.png",
+             7:"chounai.png",8:"kaizokusen.png",9:"tsukimi.gif",10:"halloween.png",11:"autumn.png",12:"xmas.png"};
+  var m=Number(new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Tokyo",month:"numeric"}).format(new Date()));
+  var q=new URLSearchParams(location.search).get("month"); /* 確認用: index.html?month=5 */
+  if(q&&STAGE[Number(q)]){m=Number(q);}
+  var mm=("0"+m).slice(-2);
+  document.getElementById("month-stage-img").src="top/img-topstage-"+STAGE[m];
+  document.getElementById("month-stage-link").href="calendar.html#m"+mm;
+})();
 </script>
 </body>
 </html>
