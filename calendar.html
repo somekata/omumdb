@@ -4,19 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>バイキンズ®カレンダー一覧｜大阪公立大学大学院医学研究科 細菌学</title>
-<meta name="description" content="大阪公立大学大学院医学研究科 細菌学のホームページ。薬剤耐性（AMR）をはじめとする細菌・真菌感染症の研究と、細菌学を楽しく学べる教育・啓発に取り組んでいます。">
-<link rel="canonical" href="https://somekata.github.io/omumdb/">
-<link rel="alternate" hreflang="ja" href="https://somekata.github.io/omumdb/">
-<link rel="alternate" hreflang="en" href="https://somekata.github.io/omumdb/en/index.html">
+<meta name="description" content="大阪公立大学大学院医学研究科 細菌学のバイキンズ®カレンダー一覧。毎月のイラストを掲載しています。">
+<link rel="canonical" href="https://somekata.github.io/omumdb/calendar.html">
+<link rel="alternate" hreflang="ja" href="https://somekata.github.io/omumdb/calendar.html">
 <meta property="og:type" content="website">
-<meta property="og:title" content="大阪公立大学大学院医学研究科 細菌学">
-<meta property="og:description" content="大阪公立大学大学院医学研究科 細菌学のホームページ。薬剤耐性（AMR）をはじめとする細菌・真菌感染症の研究と、細菌学を楽しく学べる教育・啓発に取り組んでいます。">
-<meta property="og:image" content="https://somekata.github.io/omumdb/assets/calendar/2026-11.png">
+<meta property="og:title" content="バイキンズ®カレンダー一覧｜大阪公立大学大学院医学研究科 細菌学">
+<meta property="og:description" content="大阪公立大学大学院医学研究科 細菌学のバイキンズ®カレンダー一覧。">
 <meta name="theme-color" content="#1e2d50">
 <link rel="icon" href="assets/favicon.png" type="image/png">
 <link rel="stylesheet" href="assets/style.css">
 <style>
 /* 月替わりイラスト（トップ） */
+.month-stage{display:block;max-width:874px;margin:0 auto}
+.month-stage img{display:block;width:100%;height:auto;border-radius:6px}
+.month-stage span{display:block;margin-top:8px;font-size:1rem;text-align:center}
 .month-stage{display:block;max-width:874px;margin:0 auto}
 .month-stage img{display:block;width:100%;height:auto;border-radius:6px}
 .month-stage span{display:block;margin-top:8px;font-size:1rem;text-align:center}
@@ -45,6 +46,12 @@
 </header>
 <main id="main">
 <section class="section"><div class="wrap">
+  <a class="month-stage" id="month-stage-link" href="#m11" title="今月のカレンダーへ">
+    <img id="month-stage-img" src="top/img-topstage-autumn.png" width="874" height="338" alt="今月のバイキンズ®イラスト（クリックで今月のカレンダーへ）">
+    <span>今月のカレンダーを見る</span>
+  </a>
+</div></section>
+<section class="section"><div class="wrap">
   <h2 class="sec">バイキンズ®カレンダー一覧</h2>
   <nav class="cal-nav" aria-label="月の選択"><a href="#m01">1月</a><a href="#m02">2月</a><a href="#m03">3月</a><a href="#m04">4月</a><a href="#m05">5月</a><a href="#m06">6月</a><a href="#m07">7月</a><a href="#m08">8月</a><a href="#m09">9月</a><a href="#m10">10月</a><a href="#m11">11月</a><a href="#m12">12月</a></nav>
 <section class="cal-item" id="m01"><h3>1月</h3><img src="calendar/img-hyougo-201601.png" alt="1月のバイキンズ®カレンダー"></section>
@@ -72,6 +79,19 @@
 (function(){var b=document.querySelector('.nav-toggle'),n=document.getElementById('site-nav');
 if(!b||!n)return;document.documentElement.classList.add('js');
 b.addEventListener('click',function(){var o=n.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false');});})();
+</script>
+<script>
+/* 月替わりイラスト：日本時間の月に合わせて自動で切り替え、クリックで calendar.html#mNN へ */
+(function(){
+  var STAGE={1:"shougatsu.png",2:"setsubun.png",3:"hinamatsuri.png",4:"spring.png",5:"kodomonohi.gif",6:"tsuyu.png",
+             7:"chounai.png",8:"kaizokusen.png",9:"tsukimi.gif",10:"halloween.png",11:"autumn.png",12:"xmas.png"};
+  var m=Number(new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Tokyo",month:"numeric"}).format(new Date()));
+  var q=new URLSearchParams(location.search).get("month"); /* 確認用: index.html?month=5 */
+  if(q&&STAGE[Number(q)]){m=Number(q);}
+  var mm=("0"+m).slice(-2);
+  document.getElementById("month-stage-img").src="top/img-topstage-"+STAGE[m];
+  document.getElementById("month-stage-link").href="#m"+mm;
+})();
 </script>
 </body>
 </html>
