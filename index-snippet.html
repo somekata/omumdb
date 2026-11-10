@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>トップページ（月替わりイラスト部分）</title>
+<style>
+  body { font-family: "BIZ UDPGothic", "Meiryo", sans-serif; margin: 0; padding: 16px; color: #000; background: #fff; }
+  .top-stage { max-width: 874px; margin: 0 auto; }
+  .top-stage a { display: block; }
+  .top-stage img { width: 100%; height: auto; display: block; }
+  footer { max-width: 874px; margin: 32px auto 0; font-size: 0.85rem; color: #333; border-top: 1px solid #ccc; padding-top: 12px; line-height: 1.7; }
+</style>
+</head>
+<body>
+
+<!-- ▼ ここから、トップページの該当箇所に貼り付け ▼ -->
+<div class="top-stage">
+  <a id="top-stage-link" href="calendar.html" title="今月のカレンダーを見る">
+    <img id="top-stage-img" src="img-topstage-shougatsu.png" alt="今月のバイキンズイラスト（クリックでカレンダー一覧へ）">
+  </a>
+</div>
+
+<script>
+(function () {
+  var CALENDAR = "calendar.html";   // カレンダー一覧ページ
+
+  // 月 → トップページ用イラスト
+  var STAGE = {
+     1: "img-topstage-shougatsu.png",
+     2: "img-topstage-setsubun.png",
+     3: "img-topstage-hinamatsuri.png",
+     4: "img-topstage-spring.png",
+     5: "img-topstage-kodomonohi.gif",
+     6: "img-topstage-tsuyu.png",
+     7: "img-topstage-chounai.png",
+     8: "img-topstage-kaizokusen.png",
+     9: "img-topstage-tsukimi.gif",
+    10: "img-topstage-halloween.png",
+    11: "img-topstage-autumn.png",
+    12: "img-topstage-xmas.png"
+  };
+
+  // 日本時間（Asia/Tokyo）の現在の月。閲覧者の端末の時刻設定に左右されない
+  var month = Number(new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Tokyo", month: "numeric"
+  }).format(new Date()));
+
+  // 動作確認用：index.html?month=5 のように指定するとその月の表示になる
+  var q = new URLSearchParams(location.search).get("month");
+  if (q && STAGE[Number(q)]) { month = Number(q); }
+
+  var mm = ("0" + month).slice(-2);
+  document.getElementById("top-stage-img").src = STAGE[month];
+  document.getElementById("top-stage-link").href = CALENDAR + "#m" + mm;
+})();
+</script>
+<!-- ▲ ここまで ▲ -->
+
+<footer>
+  本テキストは AI（Claude, Anthropic）を用いて作成されました。内容には誤りが含まれる可能性があります。医療上の判断には必ず公式の教科書・文献・専門家の指導を参照してください。<br>
+  二次利用・再配布は自己責任のもとで可能です。その際、本注記の保持を推奨します。
+</footer>
+</body>
+</html>
